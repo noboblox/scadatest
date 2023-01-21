@@ -17,6 +17,10 @@ SOURCES += \
     telegramtablemodel.cpp
 
 HEADERS += \
+    api/apimessage.hpp \
+    api/events.hpp \
+    api/requests.hpp \
+    api/response.hpp \
     connectionevent.h \
     connectionmodel.hpp \
     decodedmessage.hpp \
