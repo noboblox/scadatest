@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "apimessage.hpp"
+#include "../id.hpp"
 
 namespace VRTU
 {
@@ -14,6 +15,8 @@ namespace VRTU
             ET_SERVER_STARTED,
             ET_SERVER_STOPPED,
             ET_PEER_CONNECTED,
+            ET_CONNECTION_ACTIVE,
+            ET_CONNECTION_PASSIVE,
             ET_PEER_DISCONNECTED,
             ET_APDU_SENT,
             ET_APDU_RECEIVED,
@@ -35,41 +38,41 @@ namespace VRTU
     class EventServerStarted : public Event
     {
     public:
-        EventServerStarted(int aId, const std::string& arIp, int aPort)
+        EventServerStarted(const Id& aId, const std::string& arIp, int aPort)
             : Event(ET_SERVER_STARTED),
               mIp(arIp), mId(aId), mPort(aPort)
         {
         }
 
         const std::string& ip() const noexcept { return mIp; }
-        int id() const noexcept { return mId; }
+        const Id& id() const noexcept { return mId; }
         int port() const noexcept { return mPort; }
 
     private:
         std::string mIp;
-        int mId;
+        Id mId;
         int mPort;
     };
 
     class EventServerStopped : public Event
     {
     public:
-        explicit EventServerStopped(int aId)
+        explicit EventServerStopped(const Id& aId)
             : Event(ET_SERVER_STOPPED),
               mId(aId)
         {
         }
 
-        int id() const noexcept { return mId; }
+        const Id& id() const noexcept { return mId; }
 
     private:
-        int mId;
+        Id mId;
     };
 
     class EventPeerConnected : public Event
     {
     public:
-        EventPeerConnected(int aServerId, int aConnectionId, const std::string& arIp, int aPort)
+        EventPeerConnected(const Id& aServerId, const Id& aConnectionId, const std::string& arIp, int aPort)
             : Event(ET_PEER_CONNECTED),
               mIp(arIp),
               mServerId(aServerId),
@@ -79,65 +82,94 @@ namespace VRTU
         }
 
         const std::string& ip() const noexcept { return mIp; }
-        int serverId() const noexcept { return mServerId; }
-        int connectionId() const noexcept { return mConnectionId; }
+        const Id& serverId() const noexcept { return mServerId; }
+        const Id& connectionId() const noexcept { return mConnectionId; }
         int port() const noexcept { return mPort; }
 
     private:
         std::string mIp;
-        int mServerId;
-        int mConnectionId;
+        Id mServerId;
+        Id mConnectionId;
         int mPort;
+    };
+
+    class EventConnectionActive : public Event
+    {
+    public:
+        EventConnectionActive(const Id& aConnectionId)
+            : Event(ET_CONNECTION_ACTIVE),
+              mConnectionId(aConnectionId)
+        {
+        }
+
+        const Id& connectionId() const noexcept { return mConnectionId; }
+
+    private:
+        Id mConnectionId;
+    };
+
+    class EventConnectionPassive : public Event
+    {
+    public:
+        EventConnectionPassive(const Id& aConnectionId)
+            : Event(ET_CONNECTION_PASSIVE),
+              mConnectionId(aConnectionId)
+        {
+        }
+
+        const Id& connectionId() const noexcept { return mConnectionId; }
+
+    private:
+        Id mConnectionId;
     };
 
     class EventPeerDisconnected : public Event
     {
     public:
-        EventPeerDisconnected(int aConnectionId)
+        EventPeerDisconnected(const Id& aConnectionId)
             : Event(ET_PEER_DISCONNECTED),
               mConnectionId(aConnectionId)
         {
         }
 
-        int connectionId() const noexcept { return mConnectionId; }
+        const Id& connectionId() const noexcept { return mConnectionId; }
 
     private:
-        int mConnectionId;
+        Id mConnectionId;
     };
 
     class EventApduReceived : public Event
     {
     public:
-        EventApduReceived(int aConnectionId, const uint8_t* begin, const uint8_t* end)
+        EventApduReceived(const Id& aConnectionId, const uint8_t* begin, const uint8_t* end)
             : Event(ET_APDU_RECEIVED),
               mConnectionId(aConnectionId),
               mApdu(begin, end)
         {
         }
 
-        int connectionId() const noexcept { return mConnectionId; }
-        const std::vector<uint8_t>& apdu() const noexcept;
+        const Id& connectionId() const noexcept { return mConnectionId; }
+        const std::vector<uint8_t>& apdu() const noexcept { return mApdu; }
 
     private:
-        int mConnectionId;
+        Id mConnectionId;
         std::vector<uint8_t> mApdu;
     };
 
     class EventApduSent : public Event
     {
     public:
-        EventApduSent(int aConnectionId, const uint8_t* begin, const uint8_t* end)
+        EventApduSent(const Id& aConnectionId, const uint8_t* begin, const uint8_t* end)
             : Event(ET_APDU_SENT),
               mConnectionId(aConnectionId),
               mApdu(begin, end)
         {
         }
 
-        int connectionId() const noexcept { return mConnectionId; }
-        const std::vector<uint8_t>& apdu() const noexcept;
-
+        const Id& connectionId() const noexcept { return mConnectionId; }
+        const std::vector<uint8_t>& apdu() const noexcept { return mApdu; }
     private:
-        int mConnectionId;
+        Id mConnectionId;
         std::vector<uint8_t> mApdu;
     };
 }

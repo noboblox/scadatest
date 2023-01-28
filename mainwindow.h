@@ -2,13 +2,21 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "server.h"
 #include "telegramtablemodel.h"
 #include "connectionmodel.hpp"
+#include "uistate.hpp"
+#include "vrtuthread.hpp"
+#include "vrtu/api/events.hpp"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
+
+namespace VRTU
+{
+    class Response;
+    class Event;
+}
 
 class MainWindow : public QMainWindow
 {
@@ -19,14 +27,26 @@ public:
     ~MainWindow();
 
 public slots:
+    void ExecuteVrtuMessage(std::shared_ptr<const VRTU::ApiMessage> apMsg);
     void StartServer();
     void StopServer();
-    void PrintTelegram(const TelegramEvent& arEvent);
-    void UpdateConnections(const ConnectionEvent& arEvent);
+
+private:
+    void HandleResponse(const VRTU::Response& arMsg);
+    void HandleEvent(const VRTU::Event& arMsg);
+    void HandleServerStarted(const VRTU::EventServerStarted& arMsg);
+    void HandleServerStopped(const VRTU::EventServerStopped& arMsg);
+    void HandlePeerConnected(const VRTU::EventPeerConnected& arMsg);
+    void HandleConnectionActive(const VRTU::EventConnectionActive& arMsg);
+    void HandleConnectionPassive(const VRTU::EventConnectionPassive& arMsg);
+    void HandlePeerDisconnected(const VRTU::EventPeerDisconnected& arMsg);
+    void HandleApduReceived(const VRTU::EventApduReceived& arMsg);
+    void HandleApduSent(const VRTU::EventApduSent& arMsg);
 
 private:
     Ui::MainWindow* ui;
-    IEC104::Server mServer;
+    VrtuThread service;
+    UiState state;
     TelegramTableModel mEventTable;
     ConnectionModel mConnectionTable;
 };

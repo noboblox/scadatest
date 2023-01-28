@@ -10,24 +10,29 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs depr
 
 SOURCES += \
     connectionmodel.cpp \
-    decodedmessage.cpp \
     main.cpp \
     mainwindow.cpp \
-    server.cpp \
-    telegramtablemodel.cpp
+    telegramtablemodel.cpp \
+    vrtu/server.cpp \
+    vrtu/service.cpp \
+    vrtu/id.cpp \
+    vrtu/model.cpp \
+    vrtuthread.cpp
 
 HEADERS += \
-    api/apimessage.hpp \
-    api/events.hpp \
-    api/requests.hpp \
-    api/response.hpp \
-    connectionevent.h \
+    uistate.hpp \
+    vrtu/api/apimessage.hpp \
+    vrtu/api/events.hpp \
+    vrtu/api/requests.hpp \
+    vrtu/api/response.hpp \
     connectionmodel.hpp \
-    decodedmessage.hpp \
     mainwindow.h \
-    server.h \
-    telegramevent.h \
-    telegramtablemodel.h
+    telegramtablemodel.h \
+    vrtu/server.hpp \
+    vrtu/service.hpp \
+    vrtu/id.hpp \
+    vrtu/model.hpp \
+    vrtuthread.hpp
 
 FORMS += \
     mainwindow.ui

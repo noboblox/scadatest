@@ -3,6 +3,7 @@
 
 #include <string>
 #include "apimessage.hpp"
+#include "../id.hpp"
 
 namespace VRTU
 {
@@ -28,10 +29,10 @@ namespace VRTU
         RequestType mType;
     };
 
-    class StartServer : public Request
+    class RequestStartServer : public Request
     {
     public:
-        StartServer(const std::string& arIp, int aPort)
+        RequestStartServer(const std::string& arIp, int aPort)
             : Request(REQUEST_START_SERVER),
               mIp(arIp), mPort(aPort)
         {
@@ -45,19 +46,19 @@ namespace VRTU
         int mPort;
     };
 
-    class StopServer : public Request
+    class RequestStopServer : public Request
     {
     public:
-        StopServer(int aId)
+        RequestStopServer(const Id& aId)
             : Request(REQUEST_STOP_SERVER),
               mId(aId)
         {
         }
 
-        int serverId() const noexcept { return mId; }
+        const Id& serverId() const noexcept { return mId; }
 
     private:
-        int mId;
+        Id mId;
     };
 }
 

@@ -1,36 +1,33 @@
-#ifndef SERVER_H
-#define SERVER_H
-
-#include <QObject>
+#ifndef VRTU_SERVER_HPP
+#define VRTU_SERVER_HPP
 
 #include <memory>
 #include <string>
+#include <functional>
 #include "cs104_slave.h"
-#include "connectionevent.h"
-#include "telegramevent.h"
 
-namespace IEC104
+namespace VRTU
 {
-    class Server : public QObject
-    {
-        Q_OBJECT
-    public:
-        explicit Server();
+    class Model;
 
-        void Start(const std::string& arInterface, int aPort);
+    class Server
+    {
+    public:
+        explicit Server(Model& arParent);
+
+        bool Start(const std::string& arIp, int aPort);
         void Stop() noexcept;
         bool IsRunning() const noexcept;
 
         const std::string& GetOwnAddress() const noexcept {return mLocalAddress; }
 
-    signals:
-        void OnTelegramEvent(const TelegramEvent& arEvent);
-        void OnConnectionEvent(const ConnectionEvent& arEvent);
+        static std::pair<std::string, int> peerAddress(IMasterConnection connection);
 
     private:
         static void OnTelegramEventInternal(void* parameter, IMasterConnection connection, uint8_t* msg, int msgSize, bool send) noexcept;
         static void OnConnectionEventInternal(void* parameter, IMasterConnection connection, CS104_PeerConnectionEvent event) noexcept;
 
+        Model& mrParent;
         std::unique_ptr<sCS104_Slave, void(*)(sCS104_Slave*)> mpSlave;
         std::string mLocalAddress;
         int mPort;

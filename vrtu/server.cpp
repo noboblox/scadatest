@@ -1,18 +1,20 @@
-#include "server.h"
+#include "server.hpp"
 #include <stdexcept>
 #include <string>
+#include <cstring>
+#include "model.hpp"
 
-
-namespace IEC104
+namespace VRTU
 {
-    Server::Server()
-        : mpSlave(CS104_Slave_create(1024, 1024), CS104_Slave_destroy),
+    Server::Server(Model& arParent)
+        : mrParent(arParent),
+          mpSlave(CS104_Slave_create(1024, 1024), CS104_Slave_destroy),
           mLocalAddress(),
           mPort(0)
     {
     }
 
-    void Server::Start(const std::string& arInterface, int aPort)
+    bool Server::Start(const std::string& arInterface, int aPort)
     {
         mLocalAddress = arInterface;
         mPort = aPort;
@@ -23,8 +25,7 @@ namespace IEC104
         CS104_Slave_setLocalPort(mpSlave.get(), mPort);
         CS104_Slave_start(mpSlave.get());
 
-        if (!IsRunning())
-            throw std::runtime_error("failed to start server with given arguments");
+        return IsRunning();
     }
 
     void Server::Stop() noexcept
@@ -37,8 +38,7 @@ namespace IEC104
         return CS104_Slave_isRunning(mpSlave.get());
     }
 
-    static
-    bool GetPeerAddress(IMasterConnection connection, QHostAddress& ip, int& port)
+    std::pair<std::string, int> Server::peerAddress(IMasterConnection connection)
     {
         char peer_endpoint[64] = "";
         IMasterConnection_getPeerAddress(connection, peer_endpoint, sizeof(peer_endpoint));
@@ -48,12 +48,11 @@ namespace IEC104
 
         if (peer_ip && peer_port_str)
         {
-            ip.setAddress(peer_ip);
-            port = std::stoi(peer_port_str);
-            return true;
+            const int port = std::stoi(peer_port_str);
+            return std::make_pair(peer_ip, port);
         }
 
-        return false;
+        return std::make_pair("", 0);
     }
 
     /* static */
@@ -61,54 +60,29 @@ namespace IEC104
     {
         Server& self = *static_cast<Server*> (parameter);
 
-        QHostAddress peer;
-        int peer_port = 0;
-
-        if (!GetPeerAddress(connection, peer, peer_port))
-            return;
-
-        ConnectionEvent::Type type;
-
         switch (event)
         {
-        case CS104_CON_EVENT_ACTIVATED:
-            type = ConnectionEvent::STARTDT;
-            break;
-        case CS104_CON_EVENT_CONNECTION_CLOSED:
-            type = ConnectionEvent::DISCONNECTED;
-            break;
         case CS104_CON_EVENT_CONNECTION_OPENED:
-            type = ConnectionEvent::CONNECTED;
-            break;
+            self.mrParent.AddConnection(self, connection);
+            return;
+        case CS104_CON_EVENT_CONNECTION_CLOSED:
+            self.mrParent.RemoveConnection(connection);
+            return;
+        case CS104_CON_EVENT_ACTIVATED:
+            self.mrParent.ActivateConnection(connection);
+            return;
         case CS104_CON_EVENT_DEACTIVATED:
-            type = ConnectionEvent::STOPDT;
-            break;
+            self.mrParent.DeactivateConnection(connection);
+            return;
         default:
             return;
         }
-
-        ConnectionEvent msg(type, peer, peer_port);
-        emit self.OnConnectionEvent(msg);
     }
 
     /* static */
     void Server::OnTelegramEventInternal(void* parameter, IMasterConnection connection, uint8_t* msg, int msgSize, bool send) noexcept
     {
         Server& self = *static_cast<Server*> (parameter);
-
-        QHostAddress local, peer;
-        int peer_port = 0;
-
-        GetPeerAddress(connection, peer, peer_port);
-        local.setAddress(QString::fromStdString(self.GetOwnAddress()));
-
-        if (send)
-        {
-            emit self.OnTelegramEvent(TelegramEvent(local, self.mPort, peer, peer_port, QByteArray((const char*) msg, msgSize)));
-        }
-        else
-        {
-            emit self.OnTelegramEvent(TelegramEvent(peer, peer_port, local, self.mPort, QByteArray((const char*) msg, msgSize)));
-        }
+        self.mrParent.ApduEvent(connection, msg, msg + msgSize, send);
     }
 }

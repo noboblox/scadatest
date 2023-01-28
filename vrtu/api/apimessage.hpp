@@ -1,10 +1,12 @@
 #ifndef VRTU_APIMESSAGE_HPP
 #define VRTU_APIMESSAGE_HPP
 
-#include <stdexcept>
+#include <functional>
+#include <memory>
 
 namespace VRTU
 {
+
     class ApiMessage
     {
     public:
@@ -16,6 +18,9 @@ namespace VRTU
         };
 
         virtual ~ApiMessage() {}
+        bool isRequest()  const noexcept { return mCat == CAT_REQUEST; }
+        bool isResponse() const noexcept { return mCat == CAT_RESPONSE; }
+        bool isEvent()    const noexcept { return mCat == CAT_EVENT; }
 
     protected:
         explicit ApiMessage(Category aCat) noexcept
@@ -23,15 +28,12 @@ namespace VRTU
         {
         }
 
-        bool isRequest()  const noexcept { return mCat == CAT_REQUEST; }
-        bool isResponse() const noexcept { return mCat == CAT_RESPONSE; }
-        bool isEvent()    const noexcept { return mCat == CAT_EVENT; }
 
     private:
         Category mCat;
-
-
     };
+
+    using ApiMessageHandler = std::function<void(std::unique_ptr<const ApiMessage>&&)>;
 }
 
 #endif // APIMESSAGE_HPP

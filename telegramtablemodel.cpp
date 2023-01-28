@@ -46,41 +46,30 @@ QVariant TelegramTableModel::data(const QModelIndex& index, int role) const
     if (role != Qt::DisplayRole)
         return QVariant();
 
-    const RowData& data = mTelegrams[index.row()];
+    const Row& data = mTelegrams[index.row()];
 
     switch(index.column())
     {
     case COL_FROM_IP:
-        return QVariant(data.mFromIp);
+        return QVariant(data.mFromIp.c_str());
     case COL_FROM_PORT:
         return QVariant(data.mFromPort);
     case COL_TO_IP:
-        return QVariant(data.mToIp);
+        return QVariant(data.mToIp.c_str());
     case COL_TO_PORT:
         return QVariant(data.mToPort);
     case COL_DATA:
-        return QVariant(data.mData);
+        return QVariant(QByteArray((const char*) data.mData.data(), data.mData.size()).toHex(' '));
     default:
         return QVariant();
     }
 }
 
-TelegramTableModel::RowData::RowData(const TelegramEvent& arEvent)
-    : mFromIp(arEvent.mFromIp.toString()),
-      mFromPort(),
-      mToIp(arEvent.mToIp.toString()),
-      mToPort(),
-      mData(arEvent.mData.toHex(' '))
-{
-    mFromPort.setNum(arEvent.mFromPort);
-    mToPort.setNum(arEvent.mToPort);
-}
-
-void TelegramTableModel::Add(const TelegramEvent& arEvent)
+void TelegramTableModel::Add(const Row& arRow)
 {
     const int end = mTelegrams.size();
 
     beginInsertRows(QModelIndex(), end, end);
-    mTelegrams.emplace_back(arEvent);
+    mTelegrams.emplace_back(arRow);
     endInsertRows();
 }

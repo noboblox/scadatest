@@ -3,7 +3,6 @@
 
 #include <QAbstractTableModel>
 #include <vector>
-#include "telegramevent.h"
 
 class TelegramTableModel : public QAbstractTableModel
 {
@@ -21,9 +20,19 @@ public:
         COL_end
     };
 
+    struct Row
+    {
+        std::string mFromIp;
+        int mFromPort;
+        std::string mToIp;
+        int mToPort;
+        std::vector<uint8_t> mData;
+    };
+
+
     explicit TelegramTableModel();
 
-    void Add(const TelegramEvent& arEvent);
+    void Add(const Row& arEvent);
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -34,18 +43,7 @@ public:
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 
 private:
-    struct RowData
-    {
-        explicit RowData(const TelegramEvent&);
-
-        QString mFromIp;
-        QString mFromPort;
-        QString mToIp;
-        QString mToPort;
-        QString mData;
-    };
-
-    std::vector<RowData> mTelegrams;
+    std::vector<Row> mTelegrams;
 };
 
 #endif // TELEGRAMTABLEMODEL_H

@@ -1,15 +1,21 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "vrtu/api/apimessage.hpp"
+#include "vrtu/api/requests.hpp"
+#include "vrtu/api/response.hpp"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+    : QMainWindow(parent),
+      ui(new Ui::MainWindow),
+      service(this)
 {
     ui->setupUi(this);
     ui->eventTableView->setModel(&mEventTable);
     ui->connectionTable->setModel(&mConnectionTable);
     QObject::connect(ui->startButton, &QPushButton::clicked, this, &MainWindow::StartServer);
     QObject::connect(ui->stopButton,  &QPushButton::clicked, this, &MainWindow::StopServer);
+    QObject::connect(&service,  &VrtuThread::SignalMessageReceived, this, &MainWindow::ExecuteVrtuMessage, Qt::QueuedConnection);
+    service.startThread();
 }
 
 MainWindow::~MainWindow()
@@ -20,34 +26,116 @@ MainWindow::~MainWindow()
 void
 MainWindow::StartServer()
 {
-    try
-    {
-        QObject::connect(&mServer, &IEC104::Server::OnTelegramEvent, this, &MainWindow::PrintTelegram, Qt::QueuedConnection);
-        QObject::connect(&mServer, &IEC104::Server::OnConnectionEvent, this, &MainWindow::UpdateConnections, Qt::QueuedConnection);
-        mServer.Start(ui->ipAddressEdit->document()->toPlainText().toStdString(), ui->portEdit->toPlainText().toUShort());
-        ui->startButton->setEnabled(false);
-        ui->stopButton->setEnabled(true);
-    }
-    catch (...) {}
+    ui->startButton->setEnabled(false);
+    ui->stopButton->setEnabled(false);
+
+    const auto ip = ui->ipAddressEdit->document()->toPlainText().toStdString();
+    const int port = ui->portEdit->toPlainText().toUShort();
+    service.post(std::make_unique<VRTU::RequestStartServer>(ip, port));
 }
 
 void
-MainWindow::UpdateConnections(const ConnectionEvent& arEvent)
+MainWindow::ExecuteVrtuMessage(std::shared_ptr<const VRTU::ApiMessage> apMsg)
 {
-    mConnectionTable.Update(arEvent);
+    if (apMsg->isResponse())
+        HandleResponse(static_cast<const VRTU::Response&> (*apMsg));
+    else if (apMsg->isEvent())
+        HandleEvent(static_cast<const VRTU::Event&> (*apMsg));
 }
 
+void
+MainWindow::HandleResponse(const VRTU::Response&)
+{
+    if (state.server.isNull())
+        ui->startButton->setEnabled(true);
+    else
+        ui->stopButton->setEnabled(true);
+}
+
+void
+MainWindow::HandleEvent(const VRTU::Event& arMsg)
+{
+    switch (arMsg.type())
+    {
+    case VRTU::Event::ET_SERVER_STARTED:
+        HandleServerStarted(static_cast<const VRTU::EventServerStarted&> (arMsg));
+        return;
+    case VRTU::Event::ET_SERVER_STOPPED:
+        HandleServerStopped(static_cast<const VRTU::EventServerStopped&> (arMsg));
+        return;
+    case VRTU::Event::ET_PEER_CONNECTED:
+        HandlePeerConnected(static_cast<const VRTU::EventPeerConnected&> (arMsg));
+        return;
+    case VRTU::Event::ET_CONNECTION_ACTIVE:
+        HandleConnectionActive(static_cast<const VRTU::EventConnectionActive&> (arMsg));
+        return;
+    case VRTU::Event::ET_CONNECTION_PASSIVE:
+        HandleConnectionPassive(static_cast<const VRTU::EventConnectionPassive&> (arMsg));
+        return;
+    case VRTU::Event::ET_PEER_DISCONNECTED:
+        HandlePeerDisconnected(static_cast<const VRTU::EventPeerDisconnected&> (arMsg));
+        return;
+    case VRTU::Event::ET_APDU_RECEIVED:
+        HandleApduReceived(static_cast<const VRTU::EventApduReceived&> (arMsg));
+        return;
+    case VRTU::Event::ET_APDU_SENT:
+        HandleApduSent(static_cast<const VRTU::EventApduSent&> (arMsg));
+        return;
+    default:
+        return;
+    }
+}
+
+void MainWindow::HandleServerStarted(const VRTU::EventServerStarted& arMsg)
+{
+    state.server = arMsg.id();
+    state.serverIp = arMsg.ip();
+    state.serverPort = arMsg.port();
+}
+
+void MainWindow::HandleServerStopped(const VRTU::EventServerStopped&)
+{
+    state.server = VRTU::Id();
+    state.serverIp = "";
+    state.serverPort = 0;
+}
+
+void MainWindow::HandlePeerConnected(const VRTU::EventPeerConnected& arMsg)
+{
+    mConnectionTable.Add(ConnectionModel::Row{arMsg.connectionId(), (arMsg.ip()), arMsg.port(), false});
+}
+
+void MainWindow::HandleConnectionActive(const VRTU::EventConnectionActive& arMsg)
+{
+    mConnectionTable.SetActivation(arMsg.connectionId(), true);
+}
+
+void MainWindow::HandleConnectionPassive(const VRTU::EventConnectionPassive& arMsg)
+{
+    mConnectionTable.SetActivation(arMsg.connectionId(), false);
+}
+
+void MainWindow::HandlePeerDisconnected(const VRTU::EventPeerDisconnected& arMsg)
+{
+    mConnectionTable.Remove(arMsg.connectionId());
+}
+
+void MainWindow::HandleApduReceived(const VRTU::EventApduReceived& arMsg)
+{
+    const auto peer = mConnectionTable.getPeerAddress(arMsg.connectionId());
+    mEventTable.Add(TelegramTableModel::Row{peer.first, peer.second, state.serverIp, state.serverPort, arMsg.apdu()});
+}
+
+void MainWindow::HandleApduSent(const VRTU::EventApduSent& arMsg)
+{
+    const auto peer = mConnectionTable.getPeerAddress(arMsg.connectionId());
+    mEventTable.Add(TelegramTableModel::Row{state.serverIp, state.serverPort, peer.first, peer.second, arMsg.apdu()});
+}
 
 void
 MainWindow::StopServer()
 {
-    mServer.Stop();
-    ui->startButton->setEnabled(true);
+    ui->startButton->setEnabled(false);
     ui->stopButton->setEnabled(false);
-}
-
-void
-MainWindow::PrintTelegram(const TelegramEvent& arEvent)
-{
-    mEventTable.Add(arEvent);
+    service.post(std::make_unique<VRTU::RequestStopServer>(state.server));
 }

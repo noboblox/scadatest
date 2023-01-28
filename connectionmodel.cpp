@@ -1,5 +1,4 @@
 #include "connectionmodel.hpp"
-#include "connectionevent.h"
 #include <algorithm>
 
 ConnectionModel::ConnectionModel()
@@ -28,39 +27,52 @@ QVariant ConnectionModel::headerData(int section, Qt::Orientation orientation, i
     }
 }
 
-void ConnectionModel::Update(const ConnectionEvent& arEvent)
-{
-    Row entry{arEvent.mIp, arEvent.mPort, arEvent.IsActive()};
 
-    auto it = std::find(mConnections.begin(), mConnections.end(), entry);
+void ConnectionModel::Add(const Row& arRow)
+{
+    beginInsertRows(QModelIndex(), mConnections.size(), mConnections.size());
+    mConnections.push_back(arRow);
+    endInsertRows();
+}
+
+void ConnectionModel::SetActivation(const VRTU::Id& arId, bool value)
+{
+    auto it = std::find_if(mConnections.begin(), mConnections.end(),
+                           [&arId](const auto& e) { return e.id == arId; });
 
     if (it == mConnections.end())
-    {
-        if (!arEvent.IsConnect())
-            return;
+        return;
 
-        beginInsertRows(QModelIndex(), mConnections.size(), mConnections.size());
-        mConnections.push_back(entry);
-        endInsertRows();
-    }
-    else
-    {
-        const int index = std::distance(mConnections.begin(), it);
+    it->active = value;
 
-        if (arEvent.IsDisconnect())
-        {
-            beginRemoveRows(QModelIndex(), index, index);
-            mConnections.erase(it);
-            endRemoveRows();
-        }
-        else
-        {
-            it->active = arEvent.IsActive();
+    int row = std::distance(mConnections.begin(), it);
+    auto index = createIndex(row, COL_ACTIVE);
+    dataChanged(index, index);
+}
 
-            const QModelIndex changed = this->createIndex(index, COL_ACTIVE, nullptr);
-            emit dataChanged(changed, changed, QList<int> {Qt::DisplayRole});
-        }
-    }
+void ConnectionModel::Remove(const VRTU::Id& arId)
+{
+    auto it = std::find_if(mConnections.begin(), mConnections.end(),
+                           [&arId](const auto& e) { return e.id == arId; });
+
+    if (it == mConnections.end())
+        return;
+
+    const auto index = std::distance(mConnections.begin(), it);
+    beginRemoveRows(QModelIndex(), index, index);
+    mConnections.erase(it);
+    endRemoveRows();
+}
+
+std::pair<std::string, int> ConnectionModel::getPeerAddress(const VRTU::Id& arId) const
+{
+    auto it = std::find_if(mConnections.begin(), mConnections.end(),
+                           [&arId](const auto& e) { return e.id == arId; });
+
+    if (it == mConnections.end())
+        return std::make_pair("", 0);
+
+    return std::make_pair(it->peer, it->port);
 }
 
 int ConnectionModel::rowCount(const QModelIndex&) const
@@ -85,7 +97,7 @@ QVariant ConnectionModel::data(const QModelIndex &index, int role) const
     case COL_ACTIVE:
         return QVariant(data.active ? "yes" : "no");
     case COL_IP:
-        return QVariant(data.peer.toString());
+        return QVariant(data.peer.c_str());
     case COL_PORT:
         {
             QString port;

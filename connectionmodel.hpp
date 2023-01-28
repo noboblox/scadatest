@@ -2,10 +2,9 @@
 #define CONNECTIONMODEL_HPP
 
 #include <QAbstractTableModel>
-#include <QHostAddress>
+#include <string>
 #include <vector>
-#include "connectionevent.h"
-
+#include "vrtu/id.hpp"
 
 class ConnectionModel : public QAbstractTableModel
 {
@@ -21,9 +20,21 @@ public:
         COL_end
     };
 
+    struct Row
+    {
+        VRTU::Id id;
+        std::string peer;
+        int port;
+        bool active;
+    };
+
     explicit ConnectionModel();
 
-    void Update(const ConnectionEvent& arEvent);
+    void Add(const Row& arRow);
+    void SetActivation(const VRTU::Id& arId, bool value);
+    void Remove(const VRTU::Id& arId);
+
+    std::pair<std::string, int> getPeerAddress(const VRTU::Id& arId) const;
 
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
@@ -33,15 +44,6 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
 private:
-    struct Row
-    {
-        bool operator==(const Row& other) const noexcept {return peer == other.peer && port == other.port; }
-
-        QHostAddress peer;
-        int port;
-        bool active;
-    };
-
     std::vector<Row> mConnections;
 };
 
