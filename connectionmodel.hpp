@@ -4,7 +4,7 @@
 #include <QAbstractTableModel>
 #include <string>
 #include <vector>
-#include "vrtu/id.hpp"
+#include "vrtu/datamodel/id.hpp"
 
 class ConnectionModel : public QAbstractTableModel
 {

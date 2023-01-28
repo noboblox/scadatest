@@ -5,7 +5,7 @@
 #include <atomic>
 #include <thread>
 
-#include "vrtu/service.hpp"
+#include "vrtu/api/service.hpp"
 
 class VrtuThread : public QObject
 {

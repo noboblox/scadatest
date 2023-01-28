@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "id.hpp"
-#include "api/apimessage.hpp"
+#include "vrtu/api/apimessage.hpp"
 #include "iec60870_slave.h"
 
 namespace VRTU

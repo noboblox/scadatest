@@ -1,6 +1,6 @@
-#include "service.hpp"
-#include "api/requests.hpp"
-#include "api/response.hpp"
+#include "vrtu/api/service.hpp"
+#include "vrtu/api/requests.hpp"
+#include "vrtu/api/response.hpp"
 
 namespace VRTU {
 

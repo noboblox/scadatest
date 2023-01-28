@@ -5,7 +5,7 @@
 #include <memory>
 #include <mutex>
 #include <vector>
-#include "model.hpp"
+#include "vrtu/datamodel/model.hpp"
 
 namespace VRTU
 {

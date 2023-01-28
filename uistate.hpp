@@ -1,7 +1,7 @@
 #ifndef UISTATE_HPP
 #define UISTATE_HPP
 #include <QObject>
-#include "vrtu/id.hpp"
+#include "vrtu/datamodel/id.hpp"
 
 struct UiState
 {

@@ -13,26 +13,26 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     telegramtablemodel.cpp \
-    vrtu/server.cpp \
-    vrtu/service.cpp \
-    vrtu/id.cpp \
-    vrtu/model.cpp \
-    vrtuthread.cpp
+    vrtuthread.cpp \
+    vrtu/api/service.cpp \
+    vrtu/datamodel/server.cpp \
+    vrtu/datamodel/id.cpp \
+    vrtu/datamodel/model.cpp
 
 HEADERS += \
     uistate.hpp \
+    connectionmodel.hpp \
+    mainwindow.h \
+    vrtuthread.hpp \
+    telegramtablemodel.h \
     vrtu/api/apimessage.hpp \
     vrtu/api/events.hpp \
     vrtu/api/requests.hpp \
     vrtu/api/response.hpp \
-    connectionmodel.hpp \
-    mainwindow.h \
-    telegramtablemodel.h \
-    vrtu/server.hpp \
-    vrtu/service.hpp \
-    vrtu/id.hpp \
-    vrtu/model.hpp \
-    vrtuthread.hpp
+    vrtu/api/service.hpp \
+    vrtu/datamodel/server.hpp \
+    vrtu/datamodel/id.hpp \
+    vrtu/datamodel/model.hpp
 
 FORMS += \
     mainwindow.ui

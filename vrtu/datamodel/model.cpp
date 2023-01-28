@@ -1,6 +1,6 @@
 #include "model.hpp"
 #include "server.hpp"
-#include "api/events.hpp"
+#include "vrtu/api/events.hpp"
 
 namespace VRTU
 {
