@@ -1,5 +1,6 @@
 #include "telegramtablemodel.h"
 #include <QByteArray>
+#include <QDateTime>
 
 TelegramTableModel::TelegramTableModel()
     : QAbstractTableModel(nullptr)
@@ -16,6 +17,8 @@ QVariant TelegramTableModel::headerData(int section, Qt::Orientation orientation
 
     switch (section)
     {
+    case COL_RECEIVE_TIME:
+        return QVariant("received");
     case COL_FROM_IP:
         return QVariant("from address");
     case COL_FROM_PORT:
@@ -50,6 +53,12 @@ QVariant TelegramTableModel::data(const QModelIndex& index, int role) const
 
     switch(index.column())
     {
+    case COL_RECEIVE_TIME:
+    {
+        QDateTime received;
+        received.setMSecsSinceEpoch(data.mReceived.count());
+        return QVariant(received.toString("HH:mm:ss,zzz"));
+    }
     case COL_FROM_IP:
         return QVariant(data.mFromIp.c_str());
     case COL_FROM_PORT:

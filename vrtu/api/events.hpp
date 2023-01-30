@@ -1,6 +1,7 @@
 #ifndef VRTU_EVENT_HPP
 #define VRTU_EVENT_HPP
 
+#include <chrono>
 #include <vector>
 #include "apimessage.hpp"
 #include "vrtu/datamodel/id.hpp"
@@ -23,16 +24,19 @@ namespace VRTU
         };
 
         EventType type() const noexcept { return mType; }
+        std::chrono::milliseconds creationTime() const noexcept { return mCreationTime; }
 
     protected:
         explicit Event(EventType aType) noexcept
             : ApiMessage(ApiMessage::CAT_EVENT),
-              mType(aType)
+              mType(aType),
+              mCreationTime(std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()).time_since_epoch())
         {
         }
 
     private:
         EventType mType;
+        std::chrono::milliseconds mCreationTime;
     };
 
     class EventServerStarted : public Event

@@ -139,13 +139,13 @@ void MainWindow::HandlePeerDisconnected(const VRTU::EventPeerDisconnected& arMsg
 void MainWindow::HandleApduReceived(const VRTU::EventApduReceived& arMsg)
 {
     const auto peer = mConnectionTable.getPeerAddress(arMsg.connectionId());
-    mEventTable.Add(TelegramTableModel::Row{peer.first, peer.second, state.serverIp, state.serverPort, arMsg.apdu()});
+    mEventTable.Add(TelegramTableModel::Row{arMsg.creationTime(), peer.first, peer.second, state.serverIp, state.serverPort, arMsg.apdu()});
 }
 
 void MainWindow::HandleApduSent(const VRTU::EventApduSent& arMsg)
 {
     const auto peer = mConnectionTable.getPeerAddress(arMsg.connectionId());
-    mEventTable.Add(TelegramTableModel::Row{state.serverIp, state.serverPort, peer.first, peer.second, arMsg.apdu()});
+    mEventTable.Add(TelegramTableModel::Row{arMsg.creationTime(), state.serverIp, state.serverPort, peer.first, peer.second, arMsg.apdu()});
 }
 
 void

@@ -11,7 +11,8 @@ class TelegramTableModel : public QAbstractTableModel
 public:
     enum ColumnId
     {
-        COL_FROM_IP = 0,
+        COL_RECEIVE_TIME = 0,
+        COL_FROM_IP,
         COL_FROM_PORT,
         COL_TO_IP,
         COL_TO_PORT,
@@ -22,6 +23,7 @@ public:
 
     struct Row
     {
+        std::chrono::milliseconds mReceived;
         std::string mFromIp;
         int mFromPort;
         std::string mToIp;

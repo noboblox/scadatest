@@ -116,6 +116,12 @@ hr { height: 1px; border-width: 0; }
       <height>151</height>
      </rect>
     </property>
+    <property name="selectionMode">
+     <enum>QAbstractItemView::SingleSelection</enum>
+    </property>
+    <property name="selectionBehavior">
+     <enum>QAbstractItemView::SelectRows</enum>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
