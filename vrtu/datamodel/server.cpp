@@ -23,8 +23,12 @@ namespace VRTU
         CS104_Slave_setConnectionEventHandler(mpSlave.get(), &Server::OnConnectionEventInternal, this);
         CS104_Slave_setLocalAddress(mpSlave.get(), mLocalAddress.c_str());
         CS104_Slave_setLocalPort(mpSlave.get(), mPort);
-        CS104_Slave_start(mpSlave.get());
 
+        // as this service is for a test tool, we need multiple independent ACTIVE connections.
+        // the default for productive slaves is ONE active connection.
+        CS104_Slave_setServerMode(mpSlave.get(), CS104_MODE_CONNECTION_IS_REDUNDANCY_GROUP);
+
+        CS104_Slave_start(mpSlave.get());
         return IsRunning();
     }
 
