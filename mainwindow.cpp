@@ -12,9 +12,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->eventTableView->setModel(&mEventTable);
     ui->connectionTable->setModel(&mConnectionTable);
+
     QObject::connect(ui->startButton, &QPushButton::clicked, this, &MainWindow::StartServer);
     QObject::connect(ui->stopButton,  &QPushButton::clicked, this, &MainWindow::StopServer);
     QObject::connect(&service,  &VrtuThread::SignalMessageReceived, this, &MainWindow::ExecuteVrtuMessage, Qt::QueuedConnection);
+    QObject::connect(&mEventTable,  &TelegramTableModel::rowsInserted, this, &MainWindow::EventTableRowAdded);
+
     service.startThread();
 }
 
@@ -32,6 +35,19 @@ MainWindow::StartServer()
     const auto ip = ui->ipAddressEdit->document()->toPlainText().toStdString();
     const int port = ui->portEdit->toPlainText().toUShort();
     service.post(std::make_unique<VRTU::RequestStartServer>(ip, port));
+}
+
+void
+MainWindow::EventTableRowAdded(const QModelIndex&, int, int end)
+{
+    if (end <= 0)
+        return;
+
+    const int previousRow = end - 1;
+    const bool wasAtBottom = ui->eventTableView->rowViewportPosition(previousRow) < ui->eventTableView->visibleRegion().boundingRect().bottom();
+
+    if (wasAtBottom)
+        ui->eventTableView->scrollToBottom();
 }
 
 void

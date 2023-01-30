@@ -28,6 +28,7 @@ public:
 
 public slots:
     void ExecuteVrtuMessage(std::shared_ptr<const VRTU::ApiMessage> apMsg);
+    void EventTableRowAdded(const QModelIndex&, int start, int end);
     void StartServer();
     void StopServer();
 
