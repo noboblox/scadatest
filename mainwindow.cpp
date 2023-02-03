@@ -10,7 +10,16 @@ MainWindow::MainWindow(QWidget *parent)
       service(this)
 {
     ui->setupUi(this);
+
+    ui->connectionTable->horizontalHeader()->setStretchLastSection(true);
+    ui->eventTableView->horizontalHeader()->setStretchLastSection(true);
+
     ui->eventTableView->setModel(&mEventTable);
+    ui->eventTableView->setColumnWidth(0, 40);
+    ui->eventTableView->setColumnWidth(1, 110);
+    ui->eventTableView->setColumnWidth(2, 130);
+    ui->eventTableView->setColumnWidth(3, 30);
+    ui->eventTableView->setColumnWidth(4, 130);
     ui->connectionTable->setModel(&mConnectionTable);
 
     QObject::connect(ui->startButton, &QPushButton::clicked, this, &MainWindow::StartServer);
@@ -31,11 +40,22 @@ MainWindow::StartServer()
 {
     ui->startButton->setEnabled(false);
     ui->stopButton->setEnabled(false);
+    ui->ipAddressEdit->setEnabled(false);
+    ui->portEdit->setEnabled(false);
 
-    const auto ip = ui->ipAddressEdit->document()->toPlainText().toStdString();
-    const int port = ui->portEdit->toPlainText().toUShort();
+    const auto ip = ui->ipAddressEdit->text().toStdString();
+    const int port = ui->portEdit->text().toUShort();
     service.post(std::make_unique<VRTU::RequestStartServer>(ip, port));
 }
+
+void
+MainWindow::StopServer()
+{
+    ui->startButton->setEnabled(false);
+    ui->stopButton->setEnabled(false);
+    service.post(std::make_unique<VRTU::RequestStopServer>(state.server));
+}
+
 
 void
 MainWindow::EventTableRowAdded(const QModelIndex&, int, int end)
@@ -63,7 +83,11 @@ void
 MainWindow::HandleResponse(const VRTU::Response&)
 {
     if (state.server.isNull())
+    {
         ui->startButton->setEnabled(true);
+        ui->ipAddressEdit->setEnabled(true);
+        ui->portEdit->setEnabled(true);
+    }
     else
         ui->stopButton->setEnabled(true);
 }
@@ -136,22 +160,21 @@ void MainWindow::HandlePeerDisconnected(const VRTU::EventPeerDisconnected& arMsg
     mConnectionTable.Remove(arMsg.connectionId());
 }
 
+static std::string getIpString(const std::string ip, int port)
+{
+    char out[32] = "";
+    std::snprintf(out, sizeof(out), "%s:%u", ip.c_str(), port);
+    return std::string(out);
+}
+
 void MainWindow::HandleApduReceived(const VRTU::EventApduReceived& arMsg)
 {
     const auto peer = mConnectionTable.getPeerAddress(arMsg.connectionId());
-    mEventTable.Add(TelegramTableModel::Row{arMsg.creationTime(), peer.first, peer.second, state.serverIp, state.serverPort, arMsg.apdu()});
+    mEventTable.Add(TelegramTableModel::Row{arMsg.creationTime(), true, getIpString(state.serverIp, state.serverPort), getIpString(peer.first, peer.second), arMsg.apdu()});
 }
 
 void MainWindow::HandleApduSent(const VRTU::EventApduSent& arMsg)
 {
     const auto peer = mConnectionTable.getPeerAddress(arMsg.connectionId());
-    mEventTable.Add(TelegramTableModel::Row{arMsg.creationTime(), state.serverIp, state.serverPort, peer.first, peer.second, arMsg.apdu()});
-}
-
-void
-MainWindow::StopServer()
-{
-    ui->startButton->setEnabled(false);
-    ui->stopButton->setEnabled(false);
-    service.post(std::make_unique<VRTU::RequestStopServer>(state.server));
+    mEventTable.Add(TelegramTableModel::Row{arMsg.creationTime(), false, getIpString(state.serverIp, state.serverPort), getIpString(peer.first, peer.second), arMsg.apdu()});
 }

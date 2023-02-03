@@ -1,6 +1,7 @@
 #include "telegramtablemodel.h"
 #include <QByteArray>
 #include <QDateTime>
+#include <QSize>
 
 TelegramTableModel::TelegramTableModel()
     : QAbstractTableModel(nullptr)
@@ -12,21 +13,24 @@ QVariant TelegramTableModel::headerData(int section, Qt::Orientation orientation
     if (orientation != Qt::Orientation::Horizontal)
         return QVariant();
 
+    if (role == Qt::SizeHintRole)
+        return QSize(100, 20);
+
     if (role != Qt::DisplayRole)
         return QVariant();
 
     switch (section)
     {
+    case COL_SEQUENCE:
+        return QVariant("#");
     case COL_RECEIVE_TIME:
         return QVariant("received");
-    case COL_FROM_IP:
-        return QVariant("from address");
-    case COL_FROM_PORT:
-        return QVariant("from port");
-    case COL_TO_IP:
-        return QVariant("to address");
-    case COL_TO_PORT:
-        return QVariant("to port");
+    case COL_LOCAL:
+        return QVariant("local");
+    case COL_DIRECTION:
+        return QVariant("<>");
+    case COL_PEER:
+        return QVariant("peer");
     case COL_DATA:
         return QVariant("raw data");
     default:
@@ -53,20 +57,20 @@ QVariant TelegramTableModel::data(const QModelIndex& index, int role) const
 
     switch(index.column())
     {
+    case COL_SEQUENCE:
+        return QVariant(index.row() + 1);
     case COL_RECEIVE_TIME:
     {
         QDateTime received;
         received.setMSecsSinceEpoch(data.mReceived.count());
         return QVariant(received.toString("HH:mm:ss,zzz"));
     }
-    case COL_FROM_IP:
-        return QVariant(data.mFromIp.c_str());
-    case COL_FROM_PORT:
-        return QVariant(data.mFromPort);
-    case COL_TO_IP:
-        return QVariant(data.mToIp.c_str());
-    case COL_TO_PORT:
-        return QVariant(data.mToPort);
+    case COL_LOCAL:
+        return QVariant(data.mLocal.c_str());
+    case COL_DIRECTION:
+        return QVariant(data.mReceiveDirection ? "<<" : ">>");
+    case COL_PEER:
+        return QVariant(data.mPeer.c_str());
     case COL_DATA:
         return QVariant(QByteArray((const char*) data.mData.data(), data.mData.size()).toHex(' '));
     default:

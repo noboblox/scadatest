@@ -11,11 +11,11 @@ class TelegramTableModel : public QAbstractTableModel
 public:
     enum ColumnId
     {
-        COL_RECEIVE_TIME = 0,
-        COL_FROM_IP,
-        COL_FROM_PORT,
-        COL_TO_IP,
-        COL_TO_PORT,
+        COL_SEQUENCE = 0,
+        COL_RECEIVE_TIME,
+        COL_LOCAL,
+        COL_DIRECTION,
+        COL_PEER,
         COL_DATA,
 
         COL_end
@@ -24,10 +24,9 @@ public:
     struct Row
     {
         std::chrono::milliseconds mReceived;
-        std::string mFromIp;
-        int mFromPort;
-        std::string mToIp;
-        int mToPort;
+        bool mReceiveDirection;
+        std::string mLocal;
+        std::string mPeer;
         std::vector<uint8_t> mData;
     };
 
@@ -36,7 +35,6 @@ public:
 
     void Add(const Row& arEvent);
 
-    // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
