@@ -20,6 +20,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->eventTableView->setColumnWidth(2, 130);
     ui->eventTableView->setColumnWidth(3, 30);
     ui->eventTableView->setColumnWidth(4, 130);
+    ui->eventTableView->setColumnWidth(5, 10);
+    ui->eventTableView->setColumnWidth(6, 50);
+    ui->eventTableView->setColumnWidth(7, 50);
     ui->connectionTable->setModel(&mConnectionTable);
 
     QObject::connect(ui->startButton, &QPushButton::clicked, this, &MainWindow::StartServer);

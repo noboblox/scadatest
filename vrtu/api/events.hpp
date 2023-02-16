@@ -5,6 +5,7 @@
 #include <vector>
 #include "apimessage.hpp"
 #include "vrtu/datamodel/id.hpp"
+#include "vrtu/datamodel/apdu.hpp"
 
 namespace VRTU
 {
@@ -145,36 +146,37 @@ namespace VRTU
     class EventApduReceived : public Event
     {
     public:
-        EventApduReceived(const Id& aConnectionId, const uint8_t* begin, const uint8_t* end)
+        EventApduReceived(const Id& aConnectionId, Apdu&& arApdu)
             : Event(ET_APDU_RECEIVED),
               mConnectionId(aConnectionId),
-              mApdu(begin, end)
+              mApdu(std::move(arApdu))
         {
         }
 
         const Id& connectionId() const noexcept { return mConnectionId; }
-        const std::vector<uint8_t>& apdu() const noexcept { return mApdu; }
+        const Apdu& apdu() const noexcept { return mApdu; }
 
     private:
         Id mConnectionId;
-        std::vector<uint8_t> mApdu;
+        Apdu mApdu;
     };
 
     class EventApduSent : public Event
     {
     public:
-        EventApduSent(const Id& aConnectionId, const uint8_t* begin, const uint8_t* end)
+        EventApduSent(const Id& aConnectionId, Apdu&& arApdu)
             : Event(ET_APDU_SENT),
               mConnectionId(aConnectionId),
-              mApdu(begin, end)
+              mApdu(std::move(arApdu))
         {
         }
 
         const Id& connectionId() const noexcept { return mConnectionId; }
-        const std::vector<uint8_t>& apdu() const noexcept { return mApdu; }
+        const Apdu& apdu() const noexcept { return mApdu; }
+
     private:
         Id mConnectionId;
-        std::vector<uint8_t> mApdu;
+        Apdu mApdu;
     };
 }
 

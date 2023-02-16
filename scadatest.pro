@@ -13,6 +13,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     telegramtablemodel.cpp \
+    vrtu/datamodel/apdu.cpp \
     vrtuthread.cpp \
     vrtu/api/service.cpp \
     vrtu/datamodel/server.cpp \
@@ -23,6 +24,7 @@ HEADERS += \
     uistate.hpp \
     connectionmodel.hpp \
     mainwindow.h \
+    vrtu/datamodel/apdu.hpp \
     vrtuthread.hpp \
     telegramtablemodel.h \
     vrtu/api/apimessage.hpp \
@@ -31,6 +33,7 @@ HEADERS += \
     vrtu/api/response.hpp \
     vrtu/api/service.hpp \
     vrtu/datamodel/server.hpp \
+    vrtu/datamodel/enum.hpp \
     vrtu/datamodel/id.hpp \
     vrtu/datamodel/model.hpp
 
@@ -46,3 +49,6 @@ LIBS += $$PWD/../lib60870/lib60870-C/b/src/liblib60870.a -lws2_32
 
 INCLUDEPATH += $$PWD/../lib60870/lib60870-C/src/inc/api
 INCLUDEPATH += $$PWD/../lib60870/lib60870-C/src/hal/inc
+
+INCLUDEPATH += $$PWD/../lib60870/lib60870-C/src/inc/internal
+INCLUDEPATH += $$PWD/../lib60870/lib60870-C/config/

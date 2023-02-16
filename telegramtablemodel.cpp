@@ -31,8 +31,14 @@ QVariant TelegramTableModel::headerData(int section, Qt::Orientation orientation
         return QVariant("<>");
     case COL_PEER:
         return QVariant("peer");
-    case COL_DATA:
-        return QVariant("raw data");
+    case COL_FRAME_TYPE:
+        return QVariant("frame");
+    case COL_RECV_SEQ:
+        return QVariant("r");
+    case COL_SEND_SEQ:
+        return QVariant("s");
+    case COL_DETAILS:
+        return QVariant("details");
     default:
         return QVariant();
     }
@@ -46,6 +52,16 @@ int TelegramTableModel::rowCount(const QModelIndex&) const
 int TelegramTableModel::columnCount(const QModelIndex&) const
 {
     return COL_end;
+}
+
+static QString GetDetails(const VRTU::Apdu& data) noexcept
+{
+    if (data.HasService())
+    {
+        return QString(VRTU::EnumApduService::Label(data.GetService()));
+    }
+
+    return "";
 }
 
 QVariant TelegramTableModel::data(const QModelIndex& index, int role) const
@@ -71,8 +87,14 @@ QVariant TelegramTableModel::data(const QModelIndex& index, int role) const
         return QVariant(data.mReceiveDirection ? "<<" : ">>");
     case COL_PEER:
         return QVariant(data.mPeer.c_str());
-    case COL_DATA:
-        return QVariant(QByteArray((const char*) data.mData.data(), data.mData.size()).toHex(' '));
+    case COL_FRAME_TYPE:
+        return QVariant(VRTU::EnumApduType::Label(data.mApdu.GetType()));
+    case COL_RECV_SEQ:
+        return QVariant(data.mApdu.HasReceiveSequence() ? QString::number(data.mApdu.GetReceiveSequence()) : "");
+    case COL_SEND_SEQ:
+        return QVariant(data.mApdu.HasSendSequence() ? QString::number(data.mApdu.GetSendSequence()) : "");
+    case COL_DETAILS:
+        return QVariant(GetDetails(data.mApdu));
     default:
         return QVariant();
     }

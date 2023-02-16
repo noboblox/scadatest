@@ -20,6 +20,7 @@ namespace VRTU
         mPort = aPort;
 
         CS104_Slave_setRawMessageHandler(mpSlave.get(), &Server::OnTelegramEventInternal, this);
+        CS104_Slave_setASDUHandler(mpSlave.get(), &Server::IgnoreAsdu, this);
         CS104_Slave_setConnectionEventHandler(mpSlave.get(), &Server::OnConnectionEventInternal, this);
         CS104_Slave_setLocalAddress(mpSlave.get(), mLocalAddress.c_str());
         CS104_Slave_setLocalPort(mpSlave.get(), mPort);

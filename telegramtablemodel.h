@@ -3,6 +3,7 @@
 
 #include <QAbstractTableModel>
 #include <vector>
+#include "vrtu/datamodel/apdu.hpp"
 
 class TelegramTableModel : public QAbstractTableModel
 {
@@ -16,7 +17,10 @@ public:
         COL_LOCAL,
         COL_DIRECTION,
         COL_PEER,
-        COL_DATA,
+        COL_FRAME_TYPE,
+        COL_SEND_SEQ,
+        COL_RECV_SEQ,
+        COL_DETAILS,
 
         COL_end
     };
@@ -27,7 +31,7 @@ public:
         bool mReceiveDirection;
         std::string mLocal;
         std::string mPeer;
-        std::vector<uint8_t> mData;
+        VRTU::Apdu mApdu;
     };
 
 

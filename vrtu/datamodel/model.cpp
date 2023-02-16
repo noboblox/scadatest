@@ -104,9 +104,11 @@ namespace VRTU
 
     void Model::ApduEvent(IMasterConnection connection, const uint8_t* begin, const uint8_t* end, bool send)
     {
+        Apdu apdu(*IMasterConnection_getApplicationLayerParameters(connection), begin, std::distance(begin, end));
+
         if (send)
-            SendToClient(std::make_unique<EventApduSent>(connectionId(connection), begin, end));
+            SendToClient(std::make_unique<EventApduSent>(connectionId(connection), std::move(apdu)));
         else
-            SendToClient(std::make_unique<EventApduReceived>(connectionId(connection), begin, end));
+            SendToClient(std::make_unique<EventApduReceived>(connectionId(connection), std::move(apdu)));
     }
 }
